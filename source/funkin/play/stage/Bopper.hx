@@ -221,7 +221,7 @@ class Bopper extends StageProp implements IPlayStateScriptedClass
    * @param name The animation name to attempt to correct.
    * @param fallback Instead of failing to play, try to play this animation instead.
    */
-  function correctAnimationName(name:String, ?fallback:String):String
+  function correctAnimationName(name:String, ?fallback:String = 'idle'):String
   {
     // If the animation exists, we're good.
     if (hasAnimation(name)) return name;
