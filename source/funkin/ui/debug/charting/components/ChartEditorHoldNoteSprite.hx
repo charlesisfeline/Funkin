@@ -85,7 +85,7 @@ class ChartEditorHoldNoteSprite extends SustainTrail
     if (graphicPath == null) return;
     loadGraphic(graphicPath);
 
-    antialiasing = true;
+    antialiasing = Preferences.antialiasing;
 
     this.isPixel = noteStyle.isHoldNotePixel();
     if (isPixel)

@@ -49,7 +49,7 @@ class ABotVis extends FlxTypedSpriteGroup<FlxSprite>
 
       var viz:FunkinSprite = new FunkinSprite(posX, posY);
       viz.frames = visFrms;
-      viz.antialiasing = pixel ? false : true;
+      viz.antialiasing = pixel ? false : Preferences.antialiasing;
       viz.scale.set(visScale, visScale);
       add(viz);
 

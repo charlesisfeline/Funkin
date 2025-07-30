@@ -121,6 +121,7 @@ class Save
           downscroll: false,
           flashingLights: true,
           zoomCamera: true,
+          antialiasing: true,
           debugDisplay: false,
           hapticsMode: 'All',
           hapticsIntensityMultiplier: 1,
@@ -1581,6 +1582,12 @@ typedef SaveDataOptions =
    * @default `false`
    */
   var zoomCamera:Bool;
+
+  /**
+   * If disabled, the game\'s performance increases at the cost of sharper visuals.
+   * @default `true`
+   */
+  var antialiasing:Bool;
 
   /**
    * If enabled, an FPS and memory counter will be displayed even if this is not a debug build.

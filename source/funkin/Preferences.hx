@@ -163,6 +163,25 @@ class Preferences
   }
 
   /**
+   * If disabled, the game's performance increases at the cost of sharper visuals.
+   * @default `true`
+   */
+  public static var antialiasing(get, set):Bool;
+
+  static function get_antialiasing():Bool
+  {
+    return Save?.instance?.options?.antialiasing ?? true;
+  }
+
+  static function set_antialiasing(value:Bool):Bool
+  {
+    var save:Save = Save.instance;
+    save.options.antialiasing = value;
+    save.flush();
+    return value;
+  }
+
+  /**
    * If enabled, haptic feedback will be enabled.
    * @default `All`
    */
@@ -465,6 +484,8 @@ class Preferences
     #if web
     toggleFramerateCap(Preferences.unlockedFramerate);
     #end
+
+    flixel.FlxSprite.defaultAntialiasing = Preferences.antialiasing;
 
     #if desktop
     // Apply the autoFullscreen setting (launches the game in fullscreen automatically)

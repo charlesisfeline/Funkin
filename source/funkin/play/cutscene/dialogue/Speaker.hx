@@ -153,7 +153,7 @@ class Speaker extends FlxSprite implements IDialogueScriptedClass implements IRe
     }
     else
     {
-      this.antialiasing = true;
+      this.antialiasing = Preferences.antialiasing;
     }
 
     this.flipX = _data.flipX;

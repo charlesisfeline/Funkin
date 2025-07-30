@@ -139,6 +139,9 @@ class PreferencesMenu extends Page<OptionsState.OptionsMenuPageName>
       Preferences.hapticsIntensityMultiplier = value;
     }, null, Preferences.hapticsIntensityMultiplier, 0.1, 5, 0.1, 1);
     #end
+    createPrefItemCheckbox('Antialiasing', 'If disabled, the game\'s performance increases at the cost of sharper visuals.', function(value:Bool):Void {
+      Preferences.antialiasing = value;
+    }, Preferences.antialiasing);
     createPrefItemCheckbox('Flashing Lights', 'If disabled, it will dampen flashing effects. Useful for people with photosensitive epilepsy.',
       function(value:Bool):Void {
         Preferences.flashingLights = value;

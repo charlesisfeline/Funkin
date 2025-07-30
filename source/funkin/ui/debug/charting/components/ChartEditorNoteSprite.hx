@@ -238,7 +238,7 @@ class ChartEditorNoteSprite extends FlxSprite
     }
 
     var bruhStyle:NoteStyle = fetchNoteStyle(this.noteStyle);
-    this.antialiasing = !bruhStyle._data?.assets?.note?.isPixel ?? true;
+    this.antialiasing = (bruhStyle._data?.assets?.note?.isPixel ?? true) ? false : Preferences.antialiasing;
   }
 
   /**
