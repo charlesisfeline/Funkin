@@ -157,8 +157,7 @@ class ChartEditorMetadataToolbox extends ChartEditorBaseToolbox
     var startingValueNoteStyle = ChartEditorDropdowns.populateDropdownWithNoteStyles(inputNoteStyle, chartEditorState.currentSongMetadata.playData.noteStyle);
     inputNoteStyle.value = startingValueNoteStyle;
 
-    inputAlbum.onChange = (event:UIEvent) ->
-    {
+    inputAlbum.onChange = (event:UIEvent) -> {
       var valid:Bool = event.data != null && event.data.id != null;
 
       if (valid)
@@ -169,8 +168,7 @@ class ChartEditorMetadataToolbox extends ChartEditorBaseToolbox
     var startingValueAlbum = ChartEditorDropdowns.populateDropdownWithAlbums(inputAlbum, chartEditorState.currentSongMetadata.playData?.album);
     inputAlbum.value = startingValueAlbum;
 
-    inputStickerPack.onChange = (event:UIEvent) ->
-    {
+    inputStickerPack.onChange = (event:UIEvent) -> {
       var valid:Bool = event.data != null && event.data.id != null;
 
       if (valid)
@@ -178,8 +176,7 @@ class ChartEditorMetadataToolbox extends ChartEditorBaseToolbox
         chartEditorState.currentSongStickerPack = event.data.id;
       }
     }
-    var startingValueStickerPack = ChartEditorDropdowns.populateDropdownWithStickerPacks(inputStickerPack,
-      chartEditorState.currentSongMetadata.playData?.stickerPack);
+    var startingValueStickerPack = ChartEditorDropdowns.populateDropdownWithStickerPacks(inputStickerPack, chartEditorState.currentSongMetadata.playData?.stickerPack);
     inputStickerPack.value = startingValueStickerPack;
 
     inputTimeChange.onChange = function(event:UIEvent)
@@ -398,6 +395,15 @@ class ChartEditorMetadataToolbox extends ChartEditorBaseToolbox
     if (inputAlbum != null)
     {
       inputAlbum.value = (album != null) ? {id: album.id, text: album.getAlbumName()} : {id: 'volume1', text: 'Volume 1'};
+    }
+
+    var albumId:String = chartEditorState.currentSongAlbum;
+    var album:Null<Album> = AlbumRegistry.instance.fetchEntry(albumId);
+    if (inputAlbum != null)
+    {
+      inputAlbum.value = (album != null) ?
+        {id: album.id, text: album.getAlbumName()} :
+          {id: "volume1", text: "Volume 1"};
     }
 
     var LIMIT = 6;
