@@ -3896,4 +3896,9 @@ class PlayState extends MusicBeatSubState
     resyncVocals();
   }
   #end
+
+  function daku():Void
+  {
+    // dwp
+  }
 }
