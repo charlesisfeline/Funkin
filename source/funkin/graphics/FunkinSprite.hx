@@ -114,6 +114,40 @@ typedef AtlasSpriteSettings =
 class FunkinSprite extends FlxAnimate
 {
   /**
+   * The following "relative" variables aren't used by FunkinSprite itself, but instead used
+   * by FunkinGroup for cool positioning.
+   */
+  /**
+   * The X position of the sprite relative to its parent FunkinGroup.
+   */
+  public var relativeX:Float = 0;
+
+  /**
+   * The Y position of the sprite relative to its parent FunkinGroup.
+   */
+  public var relativeY:Float = 0;
+
+  /**
+   * The angle of the sprite relative to its parent FunkinGroup.
+   */
+  public var relativeAngle:Float = 0;
+
+  /**
+   * The scale of the sprite relative to its parent FunkinGroup.
+   */
+  public var relativeScale:FlxPoint = new FlxPoint(1, 1);
+
+  /**
+   * The alpha of the sprite relative to its parent FunkinGroup.
+   */
+  public var relativeAlpha:Float = 1;
+
+  /**
+   * Whether the sprite is visible relative to its parent FunkinGroup.
+   */
+  public var relativeVisible:Bool = true;
+
+  /**
    * @param x Starting X position
    * @param y Starting Y position
    * @param path The asset path for the graphic
