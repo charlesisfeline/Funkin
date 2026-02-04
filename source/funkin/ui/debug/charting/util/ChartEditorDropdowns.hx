@@ -231,6 +231,9 @@ class ChartEditorDropdowns
     "weekend-1-taunt" => "Taunt (If Fakeout) (Blazin')",
     "weekend-1-tauntforce" => "Taunt (Forced) (Blazin')",
     "weekend-1-reversefakeout" => "Fakeout (Reverse) (Blazin')",
+    "sakura-joint" => "Joint (Le Sserafim)",
+    "sakura-bf1" => "BF Sings (Le Sserafim)",
+    "sakura-bf2" => "BF Sings (Alternate) (Le Sserafim)"
   ];
 
   public static function populateDropdownWithNoteKinds(dropDown:DropDown, startingKindId:String):DropDownEntry
