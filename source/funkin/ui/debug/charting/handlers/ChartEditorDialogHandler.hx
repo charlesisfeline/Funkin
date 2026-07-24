@@ -690,8 +690,7 @@ class ChartEditorDialogHandler
 
     var inputAlbum:Null<DropDown> = dialog.findComponent('inputAlbum', DropDown);
     if (inputAlbum == null) throw 'Could not locate inputAlbum DropDown in Song Metadata dialog';
-    inputAlbum.onChange = (event:UIEvent) ->
-    {
+    inputAlbum.onChange = (event:UIEvent) -> {
       if (event.data?.id == null) return;
       newSongMetadata.playData.album = event.data.id;
     };
@@ -700,8 +699,7 @@ class ChartEditorDialogHandler
 
     var inputStickerPack:Null<DropDown> = dialog.findComponent('inputStickerPack', DropDown);
     if (inputStickerPack == null) throw 'Could not locate inputStickerPack DropDown in Song Metadata dialog';
-    inputStickerPack.onChange = (event:UIEvent) ->
-    {
+    inputStickerPack.onChange = (event:UIEvent) -> {
       if (event.data?.id == null) return;
       newSongMetadata.playData.stickerPack = event.data.id;
     };
@@ -1152,8 +1150,7 @@ class ChartEditorDialogHandler
         [FileUtil.FILE_FILTER_SM];
       case 'osumania':
         [FileUtil.FILE_FILTER_OSU];
-      default:
-        null;
+      default: null;
     }
 
     var fileExt:String = switch (format)

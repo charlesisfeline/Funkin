@@ -222,6 +222,74 @@ class ChartEditorUploadVocalsDialog extends ChartEditorBaseDialog
     this.dialogCancel.disabled = false;
   }
 
+  /**
+   * Called when clicking the Upload Chart box.
+   */
+  public function onClickChartBox():Void
+  {
+    if (this.locked) return;
+
+    this.lock();
+
+    FileUtil.browseForFile('Open Chart', [FileUtil.FILE_FILTER_FNFC], onSelectFile, onCancelBrowse);
+  }
+
+  /**
+   * Called when a file is selected by dropping a file onto the Upload Chart box.
+   */
+  function onDropFileChartBox(pathStr:String):Void
+  {
+    var path:Path = new Path(pathStr);
+    trace('Dropped file (${path})');
+
+    try
+    {
+      var result:Null<Array<String>> = ChartEditorImportExportHandler.loadFromFNFCPath(chartEditorState, path.toString());
+      if (result != null)
+      {
+        chartEditorState.success('Loaded Chart',
+          result.length == 0 ? 'Loaded chart (${path.toString()})' : 'Loaded chart (${path.toString()})\n${result.join("\n")}');
+        this.hideDialog(DialogButton.APPLY);
+      }
+      else
+      {
+        chartEditorState.failure('Failed to Load Chart', 'Failed to load chart (${path.toString()})');
+      }
+    }
+    catch (err)
+    {
+      chartEditorState.failure('Failed to Load Chart', 'Failed to load chart (${path.toString()}): ${err}');
+    }
+  }
+
+  /**
+   * Called when a file is selected by the dialog displayed when clicking the Upload Chart box.
+   */
+  function onSelectFile(selectedFile:SelectedFileData):Void
+  {
+    this.unlock();
+
+    if (selectedFile != null && selectedFile.bytes != null)
+    {
+      try
+      {
+        var result:Null<Array<String>> = ChartEditorImportExportHandler.loadFromFNFC(chartEditorState, selectedFile.bytes);
+        if (result != null)
+        {
+          chartEditorState.success('Loaded Chart',
+            result.length == 0 ? 'Loaded chart (${selectedFile.name})' : 'Loaded chart (${selectedFile.name})\n${result.join("\n")}');
+
+          if (selectedFile.fullPath != null) chartEditorState.currentWorkingFilePath = selectedFile.fullPath;
+          this.hideDialog(DialogButton.APPLY);
+        }
+      }
+      catch (err)
+      {
+        chartEditorState.failure('Failed to Load Chart', 'Failed to load chart (${selectedFile.name}): ${err}');
+      }
+    }
+  }
+
   function onCancelBrowse():Void
   {
     this.unlock();
