@@ -273,7 +273,7 @@ class ChartEditorUploadVocalsDialog extends ChartEditorBaseDialog
     {
       try
       {
-        var result:Null<Array<String>> = ChartEditorImportExportHandler.loadSongFromFNFCPath(chartEditorState, selectedFile.bytes);
+        var result:Null<Array<String>> = ChartEditorImportExportHandler.loadSongFromFNFCBytes(chartEditorState, selectedFile.bytes);
         if (result != null)
         {
           chartEditorState.success('Loaded Chart',
