@@ -21,7 +21,8 @@ import funkin.util.file.FNFCUtil.FNFCData;
 /**
  * Contains functions for importing, loading, saving, and exporting charts.
  */
-@:nullSafety @:access(funkin.ui.debug.charting.ChartEditorState)
+@:nullSafety
+@:access(funkin.ui.debug.charting.ChartEditorState)
 class ChartEditorImportExportHandler
 {
   /**
@@ -116,15 +117,23 @@ class ChartEditorImportExportHandler
    * @param path The path of the FNFC file. Optional, only for logging purposes.
    * @return `null` on failure, `[]` on success, `[warnings]` on success with warnings.
    */
-  public static function loadSongFromFNFCBytes(state:ChartEditorState, bytes:Bytes, ?path:String):Void
+  public static function loadSongFromFNFCBytes(state:ChartEditorState, bytes:Bytes, ?path:String)
   {
-    var entries:FNFCData = FNFCUtil.loadDataFromFNFCBytes(bytes, true);
-    loadSongFromFNFCData(state, entries, path);
-
-    if (path != null)
+    try
     {
-      state.currentWorkingFilePath = path;
-      state.saveDataDirty = false; // Just loaded file!
+      var entries:FNFCData = FNFCUtil.loadDataFromFNFCBytes(bytes, true);
+      loadSongFromFNFCData(state, entries, path);
+
+      if (path != null)
+      {
+        state.currentWorkingFilePath = path;
+        state.saveDataDirty = false; // Just loaded file!
+      }
+      return [];
+    }
+    catch (e)
+    {
+      return ['$e'];
     }
   }
 
@@ -135,13 +144,21 @@ class ChartEditorImportExportHandler
    * @param path The absolute path to the FNFC file to load.
    * @return `null` on failure, `[]` on success, `[warnings]` on success with warnings.
    */
-  public static function loadSongFromFNFCPath(state:ChartEditorState, path:String):Void
+  public static function loadSongFromFNFCPath(state:ChartEditorState, path:String)
   {
-    var entries:FNFCData = FNFCUtil.loadDataFromFNFCPath(path, true);
-    loadSongFromFNFCData(state, entries, path);
+    try
+    {
+      var entries:FNFCData = FNFCUtil.loadDataFromFNFCPath(path, true);
+      loadSongFromFNFCData(state, entries, path);
 
-    state.currentWorkingFilePath = path;
-    state.saveDataDirty = false; // Just loaded file!
+      state.currentWorkingFilePath = path;
+      state.saveDataDirty = false; // Just loaded file!
+      return [];
+    }
+    catch (e)
+    {
+      return ['$e'];
+    }
   }
 
   static function detectStackedNotes(state:ChartEditorState):Void
@@ -179,8 +196,11 @@ class ChartEditorImportExportHandler
         // Increase the delay between notifications if there are multiple variations with stacked notes, to prevent overlap.
         flixel.util.FlxTimer.wait(delay, () ->
         {
-          state.warning('Stacked Notes Detected', 'Found $stackedNotesCount stacked note(s) in \'${variation.toTitleCase()}\' variation, '
-            + 'on ${affectedDiffs.joinPlural()} difficult${affectedDiffs.length > 1 ? 'ies' : 'y'}.');
+          state.warning(
+            'Stacked Notes Detected',
+            'Found $stackedNotesCount stacked note(s) in \'${variation.toTitleCase()}\' variation, ' +
+            'on ${affectedDiffs.joinPlural()} difficult${affectedDiffs.length > 1 ? 'ies' : 'y'}.'
+          );
         });
         delay *= 1.5;
       }
