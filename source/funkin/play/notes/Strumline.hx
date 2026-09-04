@@ -47,6 +47,19 @@ class Strumline extends FlxSpriteGroup
   public static final KEY_COUNT:Int = 4;
   static final NOTE_SPLASH_CAP:Int = 6;
 
+  // The number of pixels a note moves per millisecond at a scroll speed of 1.
+  // Supports backwards scrolling.
+  public static function scrollRate(scrollSpeed:Float, downscroll:Bool = false):Float
+  {
+    return Constants.PIXELS_PER_MS * scrollSpeed * (downscroll ? -1 : 1);
+  }
+
+  // The Y coordinate of a note, given its origin, distance from the strumline and scroll rate.
+  public static function noteY(originY:Float, distance:Float, rate:Float, yOffset:Float):Float
+  {
+    return originY + distance * rate + yOffset;
+  }
+
   var renderDistanceMs(get, never):Float;
 
   /**
@@ -637,13 +650,13 @@ class Strumline extends FlxSpriteGroup
 
     // Update rendering of notes.
     var noteOriginY:Float = this.y - INITIAL_OFFSET;
-    var noteRate:Float = NotefieldTransform.scrollRate(scrollSpeed, isDownscroll);
+    var noteRate:Float = Strumline.scrollRate(scrollSpeed, isDownscroll);
 
     for (note in notes.members)
     {
       if (note == null || !note.alive) continue;
       // Set the note's position.
-      if (!customPositionData) note.y = NotefieldTransform.noteY(noteOriginY, note.strumTime - conductorInUse.songPosition, noteRate, note.yOffset);
+      if (!customPositionData) note.y = Strumline.noteY(noteOriginY, note.strumTime - conductorInUse.songPosition, noteRate, note.yOffset);
 
       // If the note is miss
       var isOffscreen:Bool = isDownscroll ? note.y > FlxG.height : note.y < -note.height;
@@ -979,6 +992,10 @@ class Strumline extends FlxSpriteGroup
     // We update the hold note before killing the note to prevent it being clipped from the hold cover.
     if (note.holdNoteSprite != null)
     {
+      // Mark it as hit first, so killing the note doesn't treat it as a drop.
+      note.holdNoteSprite.hitNote = true;
+      note.holdNoteSprite.missedNote = false;
+
       note.holdNoteSprite.sustainLength = Math.min(
         note.holdNoteSprite.fullSustainLength,
         (note.holdNoteSprite.strumTime + note.holdNoteSprite.fullSustainLength) - conductorInUse.songPosition
@@ -998,12 +1015,6 @@ class Strumline extends FlxSpriteGroup
       note.desaturate();
     }
 
-    if (note.holdNoteSprite != null)
-    {
-      note.holdNoteSprite.hitNote = true;
-      note.holdNoteSprite.missedNote = false;
-    }
-
     #if FEATURE_GHOST_TAPPING
     ghostTapTimer = Constants.GHOST_TAP_DELAY;
     #end
@@ -1019,7 +1030,8 @@ class Strumline extends FlxSpriteGroup
     note.visible = false;
     note.kill();
 
-    if (note.holdNoteSprite != null)
+    // Don't drop a hold that was just hit.
+    if (note.holdNoteSprite != null && !note.holdNoteSprite.hitNote)
     {
       note.holdNoteSprite.missedNote = true;
       note.holdNoteSprite.visible = false;
