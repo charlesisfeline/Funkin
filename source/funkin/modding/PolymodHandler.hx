@@ -546,6 +546,7 @@ class PolymodHandler
       // No direct field access
       'data', // LMFAO definitely not
       'clearData', // No score manipulation please
+      'system.clearSlot',
       'setLevelScore',
       'setSongScore',
       'applySongRank'
