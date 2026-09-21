@@ -190,7 +190,16 @@ class WindowUtil
   public static function alert(type:lime.ui.MessageBoxType = INFORMATION, ?message:String, ?title:String, ?buttons:Array<String>) {
     @:privateAccess
     FlxG.sound?.onFocusLost();
-    lime.app.Application.current.window.alert(type, message, title, buttons);
+
+    if (lime.app.Application.current.window != null)
+    {
+      lime.app.Application.current.window.alert(type, message, title, buttons);
+    }
+    else
+    {
+      lime.app.Application.current.alert(type, message, title, buttons);
+    }
+
     @:privateAccess
     FlxG.sound?.onFocus();
   }

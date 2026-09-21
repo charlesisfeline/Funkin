@@ -339,8 +339,6 @@ class HotReloadState extends MusicBeatState
   function beginStep(step:String):Void
   {
     trace('Queue task: $step...');
-
-    funkin.util.logging.CrashHandler.setContext('hot reload: $step');
   }
 
   function reportStepFailed(step:String, error:Dynamic):Void

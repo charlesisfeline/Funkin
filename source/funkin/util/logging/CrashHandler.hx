@@ -34,17 +34,6 @@ class CrashHandler
   }
 
   /**
-   * Set something to be shown inside of the crash log
-   * @param info The something that is shown
-   */
-  public static function setContext(info:String):Void
-  {
-    #if FEATURE_NATIVE_CRASH_HANDLER
-    funkin.external.crash.NativeCrash.setContext(info);
-    #end
-  }
-
-  /**
    * The stack of an error that was caught and rethrown elsewhere.
    */
   public static var pendingStack:Null<Array<haxe.CallStack.StackItem>> = null;

@@ -489,7 +489,7 @@ class FileUtil
   public static function readStringFromPath(path:String):String
   {
     #if sys
-    return sys.io.File.getContent(path);
+    return Bytes.fromFile(path).toString();
     #else
     throw 'Direct file reading by path is not supported on this platform.';
     #end
@@ -505,7 +505,7 @@ class FileUtil
   public static function readBytesFromPath(path:String):Bytes
   {
     #if sys
-    return sys.io.File.getBytes(path);
+    return Bytes.fromFile(path);
     #else
     throw 'Direct file reading by path is not supported on this platform.';
     #end
@@ -581,7 +581,7 @@ class FileUtil
   public static function readJSONFromPath(path:String):Dynamic
   {
     #if sys
-    return SerializerUtil.fromJSON(sys.io.File.getContent(path));
+    return SerializerUtil.fromJSON(readStringFromPath(path));
     #else
     throw 'Direct file reading by path is not supported on this platform.';
     #end
@@ -671,7 +671,7 @@ class FileUtil
     if (shouldWrite)
     {
       createDirIfNotExists(Path.directory(path));
-      sys.io.File.saveBytes(path, data);
+      Bytes.toFile(path, data);
     }
     #else
     throw 'Direct file writing by path is not supported on this platform.';

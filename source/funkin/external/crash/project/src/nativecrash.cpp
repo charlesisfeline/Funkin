@@ -2,6 +2,8 @@
 
 #include "nativecrash.hpp"
 
+#include <hxcpp.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,20 +35,93 @@
 
 #define NC_LOGDIR_MAX 512
 #define NC_NAME_MAX 128
-#define NC_CONTEXT_MAX 1024
 #define NC_PATH_MAX 1024
 #define NC_FRAMES 64
+#define NC_DIALOG_FRAMES 6
+#define NC_SUMMARY_MAX 2048
 
 static char gLogDir[NC_LOGDIR_MAX] = "logs";
 static char gAppName[NC_NAME_MAX] = "Funkin";
-static char gContext[NC_CONTEXT_MAX] = "(nothing recorded)";
-static time_t gContextTime = 0;
 static char gReportPath[NC_PATH_MAX] = "";
 
 static bool gInstalled = false;
 
-// Set the moment a fault is picked up.
 static volatile int gHandling = 0;
+
+static void nc_writeHaxeStack(FILE *file)
+{
+	fprintf(file, "\nHaxe stack:\n");
+
+#if defined(HXCPP_STACK_TRACE)
+	hx::StackContext *ctx = hx::StackContext::getCurrent();
+
+	if (ctx == NULL)
+	{
+		fprintf(file, "  (no haxe context on this thread)\n");
+		return;
+	}
+
+	int depth = ctx->getDepth();
+
+	if (depth == 0)
+	{
+		fprintf(file, "  (empty)\n");
+		return;
+	}
+
+	for (int i = depth - 1; i >= 0; i--)
+	{
+		hx::StackFrame *frame = ctx->getStackFrame(i);
+		if (frame == NULL || frame->position == NULL) continue;
+
+		fprintf(file, "  #%-2d %s::%s", depth - 1 - i, frame->position->className, frame->position->functionName);
+
+#if defined(HXCPP_STACK_LINE)
+		fprintf(file, "  (%s:%d)\n", frame->position->fileName, frame->lineNumber);
+#else
+		fprintf(file, "  (%s)\n", frame->position->fileName);
+#endif
+	}
+#else
+	fprintf(file, "  (built without HXCPP_STACK_TRACE)\n");
+#endif
+
+	fflush(file);
+}
+
+static void nc_haxeStackSummary(char *out, size_t size)
+{
+	out[0] = 0;
+
+#if defined(HXCPP_STACK_TRACE)
+	hx::StackContext *ctx = hx::StackContext::getCurrent();
+	if (ctx == NULL) return;
+
+	int depth = ctx->getDepth();
+	size_t used = 0;
+
+	for (int i = depth - 1; i >= 0 && depth - 1 - i < NC_DIALOG_FRAMES; i--)
+	{
+		hx::StackFrame *frame = ctx->getStackFrame(i);
+		if (frame == NULL || frame->position == NULL) continue;
+
+		int written;
+
+#if defined(HXCPP_STACK_LINE)
+		written = snprintf(out + used, size - used, "%s::%s (%s:%d)\n", frame->position->className, frame->position->functionName,
+						   frame->position->fileName, frame->lineNumber);
+#else
+		written = snprintf(out + used, size - used, "%s::%s (%s)\n", frame->position->className, frame->position->functionName,
+						   frame->position->fileName);
+#endif
+
+		if (written < 0 || (size_t)written >= size - used) break;
+		used += (size_t)written;
+	}
+#else
+	(void)size;
+#endif
+}
 
 static void nc_ensureLogDir()
 {
@@ -106,10 +181,6 @@ static void nc_writeHeader(FILE *file, const char *kind, const char *detail)
 	fprintf(file, "Thread: %p\n", (void *)pthread_self());
 #endif
 
-	fprintf(file, "\n=====================\n\n");
-	fprintf(file, "Doing: %s\n", gContext);
-
-	if (gContextTime != 0) fprintf(file, "Recorded: %ld seconds before the fault\n", (long)(now - gContextTime));
 	fprintf(file, "\n=====================\n\n");
 	fprintf(file, "Stack:\n");
 }
@@ -297,13 +368,18 @@ static void nc_report(const char *kind, const char *detail, CONTEXT *context)
 		if (context != NULL) nc_writeStack(file, context);
 		else fprintf(file, "  (no context record available)\n");
 
+		nc_writeHaxeStack(file);
+
 		fflush(file);
 		fclose(file);
 	}
 
-	char body[NC_CONTEXT_MAX + NC_PATH_MAX + 512];
-	snprintf(body, sizeof(body), "%s\n\n%s\n\nDoing: %s\n\nA report was written to:\n%s", kind, detail != NULL ? detail : "",
-			 gContext, file != NULL ? gReportPath : "(the report could not be written)");
+	char summary[NC_SUMMARY_MAX];
+	nc_haxeStackSummary(summary, sizeof(summary));
+
+	char body[NC_PATH_MAX + NC_SUMMARY_MAX + 512];
+	snprintf(body, sizeof(body), "%s\n\n%s\n\nHaxe stack:\n%s\nA report was written to:\n%s", kind, detail != NULL ? detail : "",
+			 summary[0] != 0 ? summary : "(unavailable)\n", file != NULL ? gReportPath : "(the report could not be written)");
 
 	nc_showDialog(body);
 
@@ -478,14 +554,18 @@ static void nc_report(const char *kind, const char *detail)
 	{
 		nc_writeHeader(file, kind, detail);
 		nc_writeStack(file);
+		nc_writeHaxeStack(file);
 
 		fflush(file);
 		fclose(file);
 	}
 
-	char body[NC_CONTEXT_MAX + NC_PATH_MAX + 512];
-	snprintf(body, sizeof(body), "%s\n\n%s\n\nDoing: %s\n\nA report was written to:\n%s", kind, detail != NULL ? detail : "",
-			 gContext, file != NULL ? gReportPath : "(the report could not be written)");
+	char summary[NC_SUMMARY_MAX];
+	nc_haxeStackSummary(summary, sizeof(summary));
+
+	char body[NC_PATH_MAX + NC_SUMMARY_MAX + 512];
+	snprintf(body, sizeof(body), "%s\n\n%s\n\nHaxe stack:\n%s\nA report was written to:\n%s", kind, detail != NULL ? detail : "",
+			 summary[0] != 0 ? summary : "(unavailable)\n", file != NULL ? gReportPath : "(the report could not be written)");
 
 	nc_showDialog(body);
 
@@ -562,17 +642,9 @@ void NATIVECRASH_Install(const char *logDir, const char *appName)
 	gInstalled = true;
 }
 
-void NATIVECRASH_SetContext(const char *info)
+void NATIVECRASH_ForceCrash()
 {
-	if (info == NULL || info[0] == 0)
-	{
-		strncpy(gContext, "(nothing recorded)", sizeof(gContext) - 1);
-	}
-	else
-	{
-		strncpy(gContext, info, sizeof(gContext) - 1);
-	}
-
-	gContext[sizeof(gContext) - 1] = 0;
-	gContextTime = time(NULL);
+	// Kept volatile so the compiler cannot fold the store away or flag it as undefined behaviour.
+	volatile int *nowhere = NULL;
+	*nowhere = 42;
 }

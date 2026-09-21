@@ -14,13 +14,6 @@ extern class NativeCrash
   static function install(logDir:cpp.ConstCharStar, appName:cpp.ConstCharStar):Void;
 
   /**
-   * Records what the game is currently doing, printed verbatim in the report.
-   * @param info The breadcrumb, truncated if it does not fit.
-   */
-  @:native('NATIVECRASH_SetContext')
-  static function setContext(info:cpp.ConstCharStar):Void;
-
-  /**
    * Writes through a null pointer to trigger a real segfault, for testing the handler.
    */
   @:native('NATIVECRASH_ForceCrash')

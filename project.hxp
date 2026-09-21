@@ -316,6 +316,12 @@ class Project extends HXProject
   static final FEATURE_DEBUG_TRACY:FeatureFlag = "FEATURE_DEBUG_TRACY";
 
   /**
+   * `-DNO_FEATURE_STACK_TRACE`
+   * If this flag is disabled, the build leaves out HXCPP_STACK_LINE and HXCPP_STACK_TRACE.
+   */
+  static final FEATURE_STACK_TRACE:FeatureFlag = "FEATURE_STACK_TRACE";
+
+  /**
    * `-DFEATURE_DISCORD_RPC`
    * If this flag is enabled, the game will enable the Discord Remote Procedure Call library.
    * This is used to provide Discord Rich Presence support.
@@ -369,6 +375,12 @@ class Project extends HXProject
    * If this flag is enabled, the input offsets menu will be available to configure your audio and visual offsets.
    */
   static final FEATURE_LAG_ADJUSTMENT:FeatureFlag = "FEATURE_LAG_ADJUSTMENT";
+
+  /**
+   * `-DFEATURE_HIGH_DPI`
+   * If this flag is enabled, the game will use high dpi which improves the quality by alot.
+   */
+  static final FEATURE_HIGH_DPI:FeatureFlag = "FEATURE_HIGH_DPI";
 
   /**
    * `-DFEATURE_LOG_TRACE`
@@ -622,17 +634,18 @@ class Project extends HXProject
 
     displayTarget();
 
+    configureFeatureFlags();
+
     configureApp();
 
     configureOutputDir();
 
-    if (isRun() || isInstall())
+    if (isRun() || isInstall() || isUninstall())
     {
       // These commands dont really need much in order to run so to improve the speed, we return here.
       return;
     }
 
-    configureFeatureFlags();
     configureCompileDefines();
     configureIncludeMacros();
     configureCustomMacros();
@@ -695,8 +708,7 @@ class Project extends HXProject
       'funkin.modding.install'
     ];
 
-    for (pack in nativePackages)
-      addHaxeMacro('haxe.macro.Compiler.addGlobalMetadata("$pack", "@:hscriptBaseCreated", true, true, false)');
+    for (pack in nativePackages) addHaxeMacro('haxe.macro.Compiler.addGlobalMetadata("$pack", "@:hscriptBaseCreated", true, true, false)');
   }
 
   /**
@@ -717,12 +729,31 @@ class Project extends HXProject
 
     if (isWindowsHost())
     {
-      postBuildCallbacks.push(new CLICommand("powershell",
-        ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", '$script.ps1', "-Target", target, "-Config", config, ".", outputDir]));
+      postBuildCallbacks.push(new CLICommand("powershell", [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        '$script.ps1',
+        "-Target",
+        target,
+        "-Config",
+        config,
+        ".",
+        outputDir
+      ]));
     }
     else
     {
-      postBuildCallbacks.push(new CLICommand("bash", ['$script.sh', "--target", target, "--config", config, ".", outputDir]));
+      postBuildCallbacks.push(new CLICommand("bash", [
+        '$script.sh',
+        "--target",
+        target,
+        "--config",
+        config,
+        ".",
+        outputDir
+      ]));
     }
   }
 
@@ -785,8 +816,9 @@ class Project extends HXProject
 
     this.window.hardware = true;
     this.window.vsync = false;
+    this.window.depthBuffer = false;
     // force / allow high DPI
-    this.window.allowHighDPI = !isMac();
+    this.window.allowHighDPI = FEATURE_HIGH_DPI.isEnabled(this);
 
     if (isWeb())
     {
@@ -985,7 +1017,7 @@ class Project extends HXProject
     FEATURE_FUNKVIS.apply(this, true);
     FEATURE_LOG_TRACE.apply(this, true);
     FEATURE_DEBUG_FILE_LOGGING.apply(this, FEATURE_DEBUG_FUNCTIONS.isEnabled(this));
-    FEATURE_NATIVE_CRASH_HANDLER.apply(this, isCPP());
+    FEATURE_NATIVE_CRASH_HANDLER.apply(this, isDesktop() && isCPP());
     FEATURE_NAUGHTYNESS.apply(this, true);
     FEATURE_OPEN_URL.apply(this, true);
     FEATURE_PARTIAL_SOUNDS.apply(this, true);
@@ -1061,6 +1093,9 @@ class Project extends HXProject
     FEATURE_MOBILE_WEBVIEW.apply(this, isMobile() && FEATURE_NEWGROUNDS.isEnabled(this));
     FEATURE_MOBILE_AGESIGNALS.apply(this, isMobile() && isRelease());
 
+    // Should be true for everything expect on mac since it reduces performance by alot.
+    FEATURE_HIGH_DPI.apply(this, !isMac());
+
     // Should be true only on mac builds.
     FEATURE_MACOS_GESTURES.apply(this, isMac());
 
@@ -1080,6 +1115,12 @@ class Project extends HXProject
     // Turns the debug display off if you are on a non debug mobile build
     // Desktop (Native and Web) always has it | Used for mobile debugging purposes
     FEATURE_DEBUG_DISPLAY.apply(this, !isMobile() || FEATURE_DEBUG_FUNCTIONS.isEnabled(this));
+
+    if (isRun() || isInstall() || isUninstall())
+    {
+      // These commands dont really need much in order to run so to improve the speed, we return here.
+      return;
+    }
 
     renderFlagsTable();
   }
@@ -1157,10 +1198,13 @@ class Project extends HXProject
     // This doesn't seem to be of any use and it causes lime.utils.AssetCache to be re-compiled on every build.
     setHaxedef("lime_disable_assets_version");
 
-    // Enable stack trace tracking. Good for debugging but has a (minor) performance impact.
     setHaxedef("HXCPP_CHECK_POINTER");
-    setHaxedef("HXCPP_STACK_LINE");
-    setHaxedef("HXCPP_STACK_TRACE");
+
+    if (!FEATURE_STACK_TRACE.isDisabled(this))
+    {
+      setHaxedef("HXCPP_STACK_LINE");
+      setHaxedef("HXCPP_STACK_TRACE");
+    }
 
     setHaxedef("hscriptPos");
 
@@ -1213,9 +1257,10 @@ class Project extends HXProject
       setHaxedef("absolute-paths"); // Fix source locations so Tracy can see them
     }
 
-    if (FEATURE_MULTITHREADING.isEnabled(this)) {
-			setHaxedef("lime_threads");
-		}
+    if (FEATURE_MULTITHREADING.isEnabled(this))
+    {
+      setHaxedef("lime_threads");
+    }
   }
 
   /**
@@ -1536,9 +1581,10 @@ class Project extends HXProject
       addHaxelib('hxdiscord_rpc'); // Discord API
     }
 
-		if (FEATURE_MULTITHREADING.isEnabled(this)) {
-			addHaxelib('haxe-concurrent'); // Multithreading
-		}
+    if (FEATURE_MULTITHREADING.isEnabled(this))
+    {
+      addHaxelib('haxe-concurrent'); // Multithreading
+    }
 
     if (FEATURE_NEWGROUNDS.isEnabled(this))
     {
@@ -1940,6 +1986,11 @@ class Project extends HXProject
   public function isInstall():Bool
   {
     return this.command == "install";
+  }
+
+  public function isUninstall():Bool
+  {
+    return this.command == "uninstall";
   }
 
   public function isBuild():Bool
@@ -2495,7 +2546,7 @@ class Project extends HXProject
    */
   public function info(message:String):Void
   {
-    if (!(isDisplay() || isCleanCommand() || isRun() || isInstall()))
+    if (!(isDisplay() || isCleanCommand() || isRun() || isInstall() || isUninstall()))
     {
       Sys.println(' INFO '.bold().bg_blue() + " " + message);
     }
@@ -2506,7 +2557,7 @@ class Project extends HXProject
    */
   public function warn(message:String):Void
   {
-    if (!(isDisplay() || isCleanCommand() || isRun() || isInstall()))
+    if (!(isDisplay() || isCleanCommand() || isRun() || isInstall() || isUninstall()))
     {
       Sys.println(' WARNING '.bold().bg_yellow() + " " + message);
     }

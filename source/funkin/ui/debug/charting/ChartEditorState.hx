@@ -150,16 +150,17 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
    */
   // ==============================
   // Layouts
-  public static final CHART_EDITOR_TOOLBOX_DIFFICULTY_LAYOUT:String = Paths.ui('editors/chart-editor/toolbox/difficulty');
+  public static final CHART_EDITOR_TOOLBOX_DIFFICULTY_LAYOUT:String = funkin.assets.ValidatedPaths.xml('ui/editors/chart-editor/toolboxes/difficulty').toString();
 
-  public static final CHART_EDITOR_TOOLBOX_PLAYER_PREVIEW_LAYOUT:String = Paths.ui('editors/chart-editor/toolbox/player-preview');
-  public static final CHART_EDITOR_TOOLBOX_OPPONENT_PREVIEW_LAYOUT:String = Paths.ui('editors/chart-editor/toolbox/opponent-preview');
-  public static final CHART_EDITOR_TOOLBOX_METADATA_LAYOUT:String = Paths.ui('editors/chart-editor/toolbox/metadata');
-  public static final CHART_EDITOR_TOOLBOX_OFFSETS_LAYOUT:String = Paths.ui('editors/chart-editor/toolbox/offsets');
-  public static final CHART_EDITOR_TOOLBOX_NOTE_DATA_LAYOUT:String = Paths.ui('editors/chart-editor/toolbox/note-data');
-  public static final CHART_EDITOR_TOOLBOX_EVENT_DATA_LAYOUT:String = Paths.ui('editors/chart-editor/toolbox/event-data');
-  public static final CHART_EDITOR_TOOLBOX_FREEPLAY_LAYOUT:String = Paths.ui('editors/chart-editor/toolbox/freeplay');
-  public static final CHART_EDITOR_TOOLBOX_PLAYTEST_PROPERTIES_LAYOUT:String = Paths.ui('editors/chart-editor/toolbox/playtest-properties');
+  public static final CHART_EDITOR_TOOLBOX_PLAYER_PREVIEW_LAYOUT:String = funkin.assets.ValidatedPaths.xml('ui/editors/chart-editor/toolbox/player-preview').toString();
+  public static final CHART_EDITOR_TOOLBOX_OPPONENT_PREVIEW_LAYOUT:String = funkin.assets.ValidatedPaths.xml('ui/editors/chart-editor/toolbox/opponent-preview').toString();
+  public static final CHART_EDITOR_TOOLBOX_METADATA_LAYOUT:String = funkin.assets.ValidatedPaths.xml('ui/editors/chart-editor/toolboxes/metadata').toString();
+  public static final CHART_EDITOR_TOOLBOX_OFFSETS_LAYOUT:String = funkin.assets.ValidatedPaths.xml('ui/editors/chart-editor/toolboxes/offsets').toString();
+  public static final CHART_EDITOR_TOOLBOX_NOTE_DATA_LAYOUT:String = funkin.assets.ValidatedPaths.xml('ui/editors/chart-editor/toolboxes/note-data').toString();
+  public static final CHART_EDITOR_TOOLBOX_EVENT_DATA_LAYOUT:String = funkin.assets.ValidatedPaths.xml('ui/editors/chart-editor/toolboxes/event-data').toString();
+  public static final CHART_EDITOR_TOOLBOX_FREEPLAY_LAYOUT:String = funkin.assets.ValidatedPaths.xml('ui/editors/chart-editor/toolboxes/freeplay').toString();
+  public static final CHART_EDITOR_TOOLBOX_PLAYTEST_PROPERTIES_LAYOUT:String = funkin.assets.ValidatedPaths.xml('ui/editors/chart-editor/toolbox/playtest-properties').toString();
+
   // Validation
   public static final SUPPORTED_MUSIC_FORMATS:Array<String> = ['ogg'];
   // Layout
@@ -3132,7 +3133,7 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
 
   function calculateNotePreviewViewportBounds():FlxRect
   {
-    var bounds:FlxRect = new FlxRect();
+    var bounds:FlxRect = FlxRect.weak();
 
     // Return 0, 0, 0, 0 if the note preview doesn't exist for some reason.
     if (notePreview == null) return bounds;
@@ -4185,6 +4186,7 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
     if (selectionBoxStartPos != null)
     {
       if (selectionBoxSprite != null) selectionBoxSprite.visible = false;
+      selectionBoxStartPos.put();
       selectionBoxStartPos = null;
     }
 
@@ -4881,7 +4883,7 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
     // Handle scroll anchor
     if (scrollAnchorScreenPos != null)
     {
-      var currentScreenPos = new FlxPoint(FlxG.mouse.x, FlxG.mouse.y);
+      var currentScreenPos = FlxPoint.weak(FlxG.mouse.x, FlxG.mouse.y);
       var distance = currentScreenPos - scrollAnchorScreenPos;
 
       var verticalDistance = distance.y;
@@ -5247,11 +5249,12 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
     {
       if (scrollAnchorScreenPos == null)
       {
-        scrollAnchorScreenPos = new FlxPoint(FlxG.mouse.x, FlxG.mouse.y);
+        scrollAnchorScreenPos = FlxPoint.get(FlxG.mouse.x, FlxG.mouse.y);
         selectionBoxStartPos = null;
       }
       else
       {
+        scrollAnchorScreenPos.put();
         scrollAnchorScreenPos = null;
       }
     }
@@ -5279,6 +5282,7 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
     {
       if (scrollAnchorScreenPos != null)
       {
+        scrollAnchorScreenPos.put();
         scrollAnchorScreenPos = null;
       }
       else
@@ -5299,13 +5303,13 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
           else if (notePreview != null && FlxG.mouse.overlaps(notePreview) && !isCursorOverHaxeUI)
           {
             // Clicked note preview
-            notePreviewScrollAreaStartPos = new FlxPoint(FlxG.mouse.viewX, FlxG.mouse.viewY);
+            notePreviewScrollAreaStartPos = FlxPoint.get(FlxG.mouse.viewX, FlxG.mouse.viewY);
           }
         }
         else if (!isCursorOverHaxeUI && FlxG.keys.pressed.SHIFT)
         {
           trace('Started selection box at (${FlxG.mouse.viewX}, ${FlxG.mouse.viewY})');
-          selectionBoxStartPos = new FlxPoint(FlxG.mouse.viewX, FlxG.mouse.viewY);
+          selectionBoxStartPos = FlxPoint.get(FlxG.mouse.viewX, FlxG.mouse.viewY);
           // Drawing selection box.
           targetCursorMode = Crosshair;
         }
@@ -5325,6 +5329,7 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
 
     if (notePreviewScrollAreaStartPos != null && FlxG.mouse.released)
     {
+      notePreviewScrollAreaStartPos.put();
       notePreviewScrollAreaStartPos = null;
       notePreviewPlayHeadDragging = false;
 
@@ -5457,6 +5462,7 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
           }
 
           // Clear the selection box.
+          selectionBoxStartPos.put();
           selectionBoxStartPos = null;
           setSelectionBoxBounds();
         }
@@ -5479,7 +5485,7 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
           }
 
           // Render the selection box, and keep the rendered graphic clamped to the size of the screen
-          var selectionRect:FlxRect = new FlxRect();
+          var selectionRect:FlxRect = FlxRect.weak();
           selectionRect.x = Math.min(FlxG.mouse.viewX, selectionBoxStartPos.x);
           selectionRect.y = Math.min(Math.max(0, selectionBoxStartPos.y), FlxG.mouse.viewY);
           selectionRect.width = Math.abs(FlxG.mouse.viewX - selectionBoxStartPos.x);
@@ -5492,6 +5498,7 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
       else if (FlxG.mouse.justReleased)
       {
         // Clear the selection box.
+        selectionBoxStartPos.put();
         selectionBoxStartPos = null;
         setSelectionBoxBounds();
 
@@ -7203,6 +7210,7 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
         if (f != null) f.focus = false;
       }
 
+      writePreferences(false);
       performCleanup();
 
       FlxG.switchState(() -> new CameraEditorState({
