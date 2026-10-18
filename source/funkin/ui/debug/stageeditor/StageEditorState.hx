@@ -4,6 +4,7 @@ package funkin.ui.debug.stageeditor;
 import flixel.math.FlxPoint;
 import flixel.text.FlxText;
 import openfl.display.BitmapData;
+import openfl.geom.Point;
 import flixel.util.FlxTimer;
 import flixel.FlxCamera;
 import flixel.addons.display.shapes.FlxShapeCircle;
@@ -19,6 +20,7 @@ import funkin.data.character.CharacterData.CharacterDataParser;
 import funkin.save.Save;
 import funkin.input.Cursor;
 import haxe.ui.backend.flixel.UIState;
+import haxe.ui.containers.Box;
 import haxe.ui.containers.menus.MenuItem;
 import haxe.ui.containers.menus.Menu;
 import haxe.ui.containers.menus.MenuBar;
@@ -122,6 +124,7 @@ class StageEditorState extends UIState
   var menubarItemAbout:MenuItem;
   var menubarButtonText:Button; // test stage button
   var windowList:WindowList;
+  var bottomBar:Box;
   var bottomBarModeText:Label;
   var bottomBarSelectText:Label;
   var bottomBarMoveStepText:Label;
@@ -433,26 +436,7 @@ class StageEditorState extends UIState
     // Some callbacks.
     findObjDialog = new FindObjDialog(this, selectedSprite == null ? '' : selectedSprite.name);
 
-    FlxG.stage.window.onDropFile.add(function(path:String, state:String, x:Float, y:Float):Void
-    {
-      if (!allowInput || welcomeDialog != null) return;
-
-      var data:Bytes = FileUtil.readBytesFromPath(path);
-
-      if (data != null)
-      {
-        objNameDialog = new NewObjDialog(this, data);
-        objNameDialog.bitmapName = new haxe.io.Path(path).file;
-        objNameDialog.showDialog();
-
-        objNameDialog.onDialogClosed = function(_)
-        {
-          objNameDialog = null;
-        }
-
-        return;
-      }
-    });
+    FlxG.stage.window.onDropFile.add(onDropFile);
 
     if (params?.targetStageId != null && StageRegistry.instance.hasEntry(params?.targetStageId))
     {
@@ -542,6 +526,27 @@ class StageEditorState extends UIState
       startingVolume: 0.0
     });
     FlxG.sound.music.fadeIn(10, 0, 1);
+  }
+
+  function onDropFile(file:lime.utils.DroppedFile, state:String, x:Float, y:Float):Void
+  {
+    if (!allowInput || welcomeDialog != null) return;
+
+    var data:Bytes = FileUtil.readBytesFromPath(file.path);
+
+    if (data != null)
+    {
+      objNameDialog = new NewObjDialog(this, data);
+      objNameDialog.bitmapName = new haxe.io.Path(file.path).file;
+      objNameDialog.showDialog();
+
+      objNameDialog.onDialogClosed = function(_)
+      {
+        objNameDialog = null;
+      }
+
+      return;
+    }
   }
 
   var curTestChar:Int = 0;
@@ -646,6 +651,7 @@ class StageEditorState extends UIState
     // camera movement
 
     if (!isCursorOverHaxeUI) handleTrackpadScroll();
+    handleMiddleMousePan();
 
     // key shortcuts and inputs
     if (pressingControl() && FlxG.keys.justPressed.Q) onMenuItemClick('exit');
@@ -1078,6 +1084,60 @@ class StageEditorState extends UIState
 
     camFollow.x += (dx * TRACKPAD_PAN_SCALE) / camGame.zoom;
     camFollow.y -= (dy * TRACKPAD_PAN_SCALE) / camGame.zoom;
+  }
+
+  var middleMousePanOffset:FlxPoint = null;
+
+  function handleMiddleMousePan():Void
+  {
+    if (FlxG.mouse.justPressedMiddle)
+    {
+      if (isCursorOverHaxeUI) return;
+
+      // captures once so it don't drift
+      middleMousePanOffset = FlxPoint.get(
+        camFollow.x + FlxG.mouse.viewX,
+        camFollow.y + FlxG.mouse.viewY
+      );
+    }
+    else if (FlxG.mouse.pressedMiddle && middleMousePanOffset != null)
+    {
+      camFollow.x = middleMousePanOffset.x - FlxG.mouse.viewX;
+      camFollow.y = middleMousePanOffset.y - FlxG.mouse.viewY;
+
+      wrapMouseDuringPan();
+    }
+    else if (middleMousePanOffset != null)
+    {
+      middleMousePanOffset.put();
+      middleMousePanOffset = null;
+    }
+  }
+
+  function wrapMouseDuringPan():Void
+  {
+    if (middleMousePanOffset == null || FlxG.stage?.window == null) return;
+
+    var top:Float = (menubar != null && menubar.height > 0) ? menubar.height : 35.0;
+    var bottom:Float = FlxG.height - ((bottomBar != null && bottomBar.height > 0) ? bottomBar.height : 48.0);
+    var gx:Float = FlxG.mouse.gameX, gy:Float = FlxG.mouse.gameY;
+    var tx:Float = gx, ty:Float = gy;
+
+    if (gx <= 2) tx = FlxG.width - 6;
+    else if (gx >= FlxG.width - 2) tx = 6;
+
+    if (gy <= top) ty = bottom - 4;
+    else if (gy >= bottom) ty = top + 4;
+
+    if (tx != gx || ty != gy)
+    {
+      middleMousePanOffset.x += (tx - gx) / camGame.zoom;
+      middleMousePanOffset.y += (ty - gy) / camGame.zoom;
+
+      var p = FlxG.game.localToGlobal(new Point(tx, ty));
+      var scale = FlxG.stage.window.scale > 0 ? FlxG.stage.window.scale : 1.0;
+      FlxG.stage.window.warpMouse(Std.int(p.x / scale), Std.int(p.y / scale));
+    }
   }
 
   var sprDependant:Array<MenuItem> = [];
@@ -1701,6 +1761,14 @@ class StageEditorState extends UIState
   override function destroy():Void
   {
     super.destroy();
+
+    if (middleMousePanOffset != null)
+    {
+      middleMousePanOffset.put();
+      middleMousePanOffset = null;
+    }
+
+    FlxG.stage.window.onDropFile.remove(onDropFile);
 
     // Reset the sounds used by some playables.
     funkin.play.GameOverSubState.reset();

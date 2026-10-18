@@ -273,6 +273,8 @@ class PolymodHandler
     polymod.hscript._internal.PolymodCppiaClassReference.expectedVersion = lime.app.Application.current.meta.get('version');
     #end
 
+    funkin.assets.FunkinAssetCache.instance.clearCoreAssetCache();
+
     if (async)
     {
       return Polymod.registerAllScriptClassesAsync().then((result) ->
@@ -365,9 +367,14 @@ class PolymodHandler
 
     Polymod.addImportAlias('funkin.play.character.CharacterDataParser', funkin.data.character.CharacterData.CharacterDataParser);
 
-    // TODO: Does this work?
     Polymod.addImportAlias('funkin.graphics.adobeanimate.FlxAtlasSprite', funkin.graphics.FunkinSprite);
     Polymod.addImportAlias('funkin.modding.base.ScriptedFlxAtlasSprite', funkin.graphics.FunkinSprite);
+
+    Polymod.addImportAlias('funkin.ui.charSelect.CharSelectSubState', funkin.ui.charSelect.CharacterSelectState);
+    Polymod.addImportAlias('funkin.ui.charSelect.CharSelectPlayer', funkin.ui.charSelect.characters.CharSelectCharacter);
+    Polymod.addImportAlias('funkin.ui.charSelect.CharSelectGF', funkin.ui.charSelect.characters.CharSelectCharacter);
+    Polymod.addImportAlias('funkin.ui.charSelect.Lock', funkin.ui.charSelect.icons.Lock);
+    Polymod.addImportAlias('funkin.ui.charSelect.Nametag', funkin.ui.charSelect.characters.Nametag);
 
     // Sandboxing for compatibility.
     Polymod.addImportAlias('funkin.play.cutscene.VideoCutscene', funkin.modding.compat.VideoCutscene);
@@ -478,10 +485,6 @@ class PolymodHandler
     // Unserializer.DEFAULT_RESOLVER.resolveClass() can access blacklisted packages
     Polymod.blacklistImport('haxe.Unserializer');
 
-    // `lime.utils.AssetLibrary`
-    // If you create your own library using a manifest, AssetLibrary.__fromManifest() can access blacklisted packages apparently.
-    Polymod.blacklistImport('lime.utils.AssetLibrary');
-
     // Disable access to all Mobile Utils
     for (cls in ClassMacro.listClassesInPackage('funkin.mobile.util'))
     {
@@ -560,6 +563,10 @@ class PolymodHandler
     #if !html5 Polymod.blacklistInstanceFields(openfl.filesystem.FileStream, ['readObject']); #end
     Polymod.blacklistInstanceFields(openfl.net.Socket, ['readObject']);
     Polymod.blacklistInstanceFields(openfl.utils.ByteArray.ByteArrayData, ['readObject']);
+
+    // `openfl.filesystem.File`
+    // Can be used to delete files.
+    Polymod.blacklistImport('openfl.filesystem.File');
 
     // `funkin.api.*`
     // Contains functions which may allow for cheating and such.

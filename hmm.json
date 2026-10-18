@@ -3,8 +3,8 @@
     {
       "name": "FlxPartialSound",
       "type": "git",
-      "ref": "0acb16612f51bd241fb5261be829fff3e6039b92",
-      "url": "https://github.com/FunkinCrew/FlxPartialSound.git"
+      "ref": "ba1274145d5636d1aad53c7188c525bd39a99ee2",
+      "url": "https://github.com/FunkinCrew/FlxPartialSound"
     },
     {
       "name": "astc-compressor",
@@ -61,19 +61,19 @@
     {
       "name": "flixel",
       "type": "git",
-      "ref": "c88165fbfa4a46a05bfd796c4e39f0527cd7dc81",
+      "ref": "59232d4d10fcb89112eca66dbbe963229f49abac",
       "url": "https://github.com/FunkinCrew/flixel"
     },
     {
       "name": "flixel-addons",
       "type": "git",
-      "ref": "7628435364c4a45440d1e5db656741b66a8cd2ec",
+      "ref": "e038c227c0b48bd23a3ffa0f554e59b9c4c4bf2f",
       "url": "https://github.com/FunkinCrew/flixel-addons"
     },
     {
       "name": "flixel-animate",
       "type": "git",
-      "ref": "8c1014d9362c24538fb083706418d2ee5edf1d82",
+      "ref": "5d8c335457e69a154bcd06392990a377b9c6f806",
       "url": "https://github.com/FunkinCrew/flixel-animate"
     },
     {
@@ -130,7 +130,7 @@
     {
       "name": "hxcpp",
       "type": "git",
-      "ref": "1f4661402afe66ae7bf6a94161148f5285da5c93",
+      "ref": "d5bda40ac13f2823fe1bdcb5476e0eb027f1e7e9",
       "url": "https://github.com/FunkinCrew/hxcpp"
     },
     {
@@ -149,7 +149,7 @@
       "name": "hxjsonast",
       "type": "git",
       "ref": "20e72cc68c823496359775ac1f06500e67f189d5",
-      "url": "https://github.com/nadako/hxjsonast/"
+      "url": "https://github.com/nadako/hxjsonast"
     },
     {
       "name": "hxgamemode",
@@ -163,8 +163,9 @@
     },
     {
       "name": "hxvlc",
-      "type": "haxelib",
-      "version": "2.3.1"
+      "type": "git",
+      "ref": "5ceac764bd21625d1e9d92ea02f9a0d110c6a58c",
+      "url": "https://github.com/MAJigsaw77/hxvlc"
     },
     {
       "name": "json2object",
@@ -186,7 +187,7 @@
     {
       "name": "lime",
       "type": "git",
-      "ref": "ce02aa1a93a42f5b623efbaf138be50ac1b0a056",
+      "ref": "8888c14061aa55243da7fb6bdab21636bb32b248",
       "url": "https://github.com/FunkinCrew/lime"
     },
     {
@@ -198,13 +199,13 @@
     {
       "name": "openfl",
       "type": "git",
-      "ref": "5c3cd517264ae6b7d0a6e8dd8c4dc0159485fdd2",
+      "ref": "cbee6c79620b4c1deec93f2075d1bb5a79ad87a2",
       "url": "https://github.com/FunkinCrew/openfl"
     },
     {
       "name": "polymod",
       "type": "git",
-      "ref": "c06ddba5de6eeabcee3daa7f80867a110407ff43",
+      "ref": "4740cb234311582c31f7bc7adb4dff47bb48bbee",
       "url": "https://github.com/FunkinCrew/polymod"
     },
     {
@@ -216,7 +217,7 @@
     {
       "name": "thx.semver",
       "type": "git",
-      "ref": "b91cf5cfee6ebe43b60f8acea4257f07af176b99",
+      "ref": "d7ed6011c506130702ef4953a9ec8ecc86b32210",
       "url": "https://github.com/FunkinCrew/thx.semver"
     }
   ]
